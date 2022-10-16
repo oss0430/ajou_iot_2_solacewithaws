@@ -10,19 +10,16 @@ from cloud_config import SolaceMQTTConfig
 def main():
     ## Configuration    
     config_max_speed_hz = 1000000
-    
-    ## NOTE in python using url is different
-    ## if url is 'ssl://myurl.messaging.solace.cloud:8883'
-    ## client.connect(myurl.messaging.solace.cloud, port = 8883)
-    solace_url = 'myurl.messaging.solace.cloud'
-    solace_port = 8883
-    solace_username = ''
-    solace_password = ''
     solace_topic = 'assignment_2'
     channel = 1
+    path = 'solace_config.json'
     
+    solaceSetting = SolaceMQTTConfig()
+    solaceSetting.read_config_json(path)
+    solaceSetting_dict = solaceSetting.to_dict()
     
-    #solaceSetting = SolaceMQTTConfig(url, username, password)
+    print(solaceSetting_dict)  
+    
     device_1 = MySPIDevice()
     device_1.spi.max_speed_hz = config_max_speed_hz
     
@@ -30,9 +27,9 @@ def main():
     
     ## Connect device to solace MQTT broker
     client = mqtt.Client('device_1')
-    client.username_pw_set(username=solace_username, password=solace_password)
+    client.username_pw_set(username=solaceSetting_dict['username'], password=solaceSetting_dict['password'])
     client.tls_set(ca_certs=certifi.where())
-    client.connect(solace_url,port=solace_port)
+    client.connect(solaceSetting_dict['url'],port=solaceSetting_dict['port'])
     
     
     print("Start Publishing")
@@ -45,7 +42,7 @@ def main():
         print(payload)
         
         ## Publish with Payload
-        client.publish(solace_topic,payload,qos=0,retain=False)
+        client.publish(solace_topic, payload, qos=0, retain=False)
         
         time.sleep(1)
         
