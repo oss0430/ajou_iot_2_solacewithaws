@@ -7,7 +7,6 @@ class MySPIDevice():
     
     def __init__(
         self,
-        channel,
         max_speed_hz
         ):
         
