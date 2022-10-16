@@ -7,6 +7,11 @@ import json
 from light_sensor import MySPIDevice 
 from cloud_config import SolaceMQTTConfig 
 
+"""
+Solace publisher
+AWS IoT subscriber
+"""
+
 def main():
     ## Configuration    
     config_max_speed_hz = 1000000
@@ -42,7 +47,7 @@ def main():
         print(payload)
         
         ## Publish with Payload
-        client.publish(solace_topic, payload, qos=0, retain=False)
+        client.publish(solace_topic, payload=payload)
         
         time.sleep(1)
         
