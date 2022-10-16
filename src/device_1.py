@@ -45,7 +45,7 @@ def main():
         print(payload)
         
         ## Publish with Payload
-        client.publish(solace_topic,payload,qos=0,retain=False)
+        client.publish(solace_topic, payload, qos=0, retain=False)
         
         time.sleep(1)
         
