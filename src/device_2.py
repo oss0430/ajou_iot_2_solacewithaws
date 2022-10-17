@@ -14,26 +14,24 @@ AWS IoT publisher
 
 
 ## Callback on_subscribe
-"""    
-def on_subscribe(
-    client,
-    obj,
-    mid,
-    granted_qos
-):  
-    print("Subscirbed: " + str(mid) + " " + str(granted_qos))
     
-def on_log(
+def on_connect(
     client,
-    obj,
-    level,
-    string
+    userdata,
+    flags,
+    rc
 ):  
-    print(string)
-"""
-def print_msg(client, userdata, message):
-    print(message)
-    print(message.payload)
+    print("Connected with result code {0}".format(str(rc)))
+    
+    
+def on_message(
+    client,
+    userdata,
+    msg
+):  
+    print(msg.topic)
+    print(msg.payload)
+
 
 def main():
     ## Configuration    
@@ -50,14 +48,16 @@ def main():
     print("Setting...")
     
     ## Connect device to solace MQTT broker
-    #client = mqtt.Client('device_2')
-    #client.username_pw_set(username=solaceSetting_dict['username'], password=solaceSetting_dict['password'])
+    client = mqtt.Client('device_2')
+    client.username_pw_set(username=solaceSetting_dict['username'], password=solaceSetting_dict['password'])
+    
+    client.on_connect = on_connect
+    client.on_message = on_message
+    
     #client.tls_set(ca_certs=certifi.where())
-    #client.connect(solaceSetting_dict['url'],port=solaceSetting_dict['port'])
     
     #client.on_subscribe = on_subscribe
     #client.on_log = on_log
-    
     #print("Connected, start subscribing")
     ##client.subscribe(solace_topic)
     ## Publish Message
@@ -68,11 +68,9 @@ def main():
         #print(msg.payload)
         
         try : 
-            msg = subscribe.simple(solace_topic, hostname = solaceSetting_dict['url'], retained=False)
-          
-            print(msg.topic)
-            print(msg.payload)
-        
+            client.connect(solaceSetting_dict['url'],port=1883)
+            print(connected)
+            
         except:
             print('failed to subscribe')
         #client.subscribe(solace_topic,0)
