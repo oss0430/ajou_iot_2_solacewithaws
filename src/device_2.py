@@ -4,8 +4,9 @@ import paho.mqtt.client as mqtt
 import paho.mqtt.subscribe as subscribe
 import struct
 import json
+import picamera
 from cloud_config import SolaceMQTTConfig 
-from bytes_encoder import picture_to_byte
+from bytes_encoder import picture_to_bytes
 from AWS import aws_publish
 
 
@@ -70,17 +71,17 @@ def main():
     
     threshold = 1000
     if (light_value > threshold):
-        '''
+        
         camera = picamera.PiCamera()
         camera.rotation = 90
         camera.resolution = (640,480)
         camera.start_preview()
         time.sleep(2) 
-        camera.capture('picamera_liluminance.jpg')
-        '''
+        camera.capture('picamera_liluminance.png')
         
-        filename = "picamera_practice.png"
-        messageJson = picture_to_byte(filename)
+        
+        filename = "picamera_liluminace.png"
+        messageJson = picture_to_bytes(filename)
         aws_publish(aws_topic, messageJson, 0)
 
         
