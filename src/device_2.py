@@ -1,8 +1,7 @@
 import certifi
-import spidev, time
+import time
 import paho.mqtt.client as mqtt
 import paho.mqtt.subscribe as subscribe
-import RPi.GPIO as gpio
 import struct
 import json
 from cloud_config import SolaceMQTTConfig 
@@ -22,7 +21,8 @@ def on_connect(
     rc
 ):  
     print("Connected with result code {0}".format(str(rc)))
-    
+    client.subscribe('assignment_2')
+
     
 def on_message(
     client,
@@ -53,28 +53,12 @@ def main():
     
     client.on_connect = on_connect
     client.on_message = on_message
-    
-    #client.tls_set(ca_certs=certifi.where())
-    
-    #client.on_subscribe = on_subscribe
-    #client.on_log = on_log
-    #print("Connected, start subscribing")
-    ##client.subscribe(solace_topic)
-    ## Publish Message
-    while True:
-        ## Get Msg
-        
-        #msg = subscribe.simple([solace_topic], hostname=solaceSetting_dict['url'], retained=False, msg_count = 2)
-        #print(msg.payload)
-        
-        try : 
-            client.connect(solaceSetting_dict['url'],port=1883)
-            print(connected)
-            
-        except:
-            print('failed to subscribe')
-        #client.subscribe(solace_topic,0)
-        time.sleep(1)
+    client.tls_set(ca_certs=certifi.where())
+
+    client.connect(solaceSetting_dict['url'],solaceSetting_dict['port'])
+
+    client.loop_forever()
+
         
 
 if __name__ == '__main__':
