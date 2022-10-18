@@ -14,31 +14,6 @@ Solace subscriber
 AWS IoT publisher
 """
 
-
-## Callback on_subscribe
-    
-def on_connect(
-    client,
-    userdata,
-    flags,
-    rc
-):  
-    print("Connected with result code {0}".format(str(rc)))
-    client.subscribe('assignment_2')
-
-
-def on_message(
-    client,
-    userdata,
-    msg
-):  
-    print(msg.topic)
-    
-    json_data = json.load(msg.payload)
-    global light_value 
-    light_value = json_data['light']
-
-
 def main():
     ## Configuration    
     solace_topic = 'assignment_2'
@@ -54,6 +29,8 @@ def main():
     solaceSetting.read_config_json(solace_path)
     solaceSetting_dict = solaceSetting.to_dict()
     
+    light_value = 0
+
     print(solaceSetting_dict)  
     
     awsSetting = AWSMQTTConfig()
@@ -67,6 +44,29 @@ def main():
     ## Connect device to solace MQTT broker
     solace_client = mqtt.Client(client_id)
     solace_client.username_pw_set(username=solaceSetting_dict['username'], password=solaceSetting_dict['password'])
+    
+    ## Callback on_subscribe
+    
+    def on_connect(
+        client,
+        userdata,
+        flags,
+        rc
+    ):  
+        print("Connected with result code {0}".format(str(rc)))
+        client.subscribe('assignment_2')
+
+
+    def on_message(
+        client,
+        userdata,
+        msg
+    ):  
+        print(msg.topic)
+    
+        json_data = json.load(msg.payload)
+        nonlocal light_value 
+        light_value = json_data['light']
     
     solace_client.on_connect = on_connect
     solace_client.on_message = on_message
@@ -93,8 +93,8 @@ def main():
 
     aws_topic = "assignment_2"
     
-    threshold = 1000
-    if (light_value > threshold):
+    threshold = 300
+    if (light_value < threshold):
         
         print("threshold crossed!")
         camera = picamera.PiCamera()
