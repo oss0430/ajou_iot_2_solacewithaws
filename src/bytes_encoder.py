@@ -1,6 +1,8 @@
 import json
 import base64
+import PIL.Image as Image
 from pydoc_data.topics import topics
+
 
 class BytesEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -21,3 +23,26 @@ def picture_to_bytes(
     messageJson = json.dumps(data, cls=BytesEncoder)
     
     return messageJson
+
+
+def message_to_picture(
+    self,
+    message,
+    image_file_path
+):
+    """
+        From message
+        Extract Payload (json)
+        Decode encoded image data
+        Save image data to file to desired path
+        Finally open the image file 
+    """
+    
+    json_data = json.load(message.payload)
+    encoded_image = json_data['image']
+    decoded_image = base64.b64decode(encoded_image)
+
+    with open(image_file_path, 'wb') as f:
+        f.write(decoded_image)
+    
+    Image.open(image_file_path)
