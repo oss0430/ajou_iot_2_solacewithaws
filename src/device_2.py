@@ -4,7 +4,11 @@ import paho.mqtt.client as mqtt
 import paho.mqtt.subscribe as subscribe
 import struct
 import json
+import picamera
 from cloud_config import SolaceMQTTConfig 
+from bytes_encoder import picture_to_bytes
+from AWS import aws_publish
+
 
 """
 Solace subscriber
@@ -23,14 +27,17 @@ def on_connect(
     print("Connected with result code {0}".format(str(rc)))
     client.subscribe('assignment_2')
 
-    
+
 def on_message(
     client,
     userdata,
     msg
 ):  
     print(msg.topic)
-    print(msg.payload)
+    
+    json_data = json.load(msg.payload)
+    global light_value 
+    light_value = json_data['light']
 
 
 def main():
@@ -58,6 +65,24 @@ def main():
     client.connect(solaceSetting_dict['url'],solaceSetting_dict['port'])
 
     client.loop_forever()
+    
+
+    aws_topic = "assignment_2"
+    
+    threshold = 1000
+    if (light_value > threshold):
+        
+        camera = picamera.PiCamera()
+        camera.rotation = 90
+        camera.resolution = (640,480)
+        camera.start_preview()
+        time.sleep(2) 
+        camera.capture('picamera_liluminance.png')
+        
+        
+        filename = "picamera_liluminace.png"
+        messageJson = picture_to_bytes(filename)
+        aws_publish(aws_topic, messageJson, 0)
 
         
 
