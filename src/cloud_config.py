@@ -89,7 +89,7 @@ class AWSMQTTConfig():
         self.thing_name = aws_data_dict['Thing_Name']
         self.host_name = aws_data_dict['Host_Name']
         self.root_ca_path = aws_data_dict['Root_CA']
-        self.private_key_path = aws_data_dict['Prviate_Key']
+        self.private_key_path = aws_data_dict['Private_Key']
         self.cert_file_path = aws_data_dict['Cert_File']
 
 

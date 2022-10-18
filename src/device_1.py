@@ -33,7 +33,7 @@ def main():
 
     awsSetting = AWSMQTTConfig()
     awsSetting.read_config_json(aws_config_path)
-    awsSetting_dict = awsSetting.read_config_json()
+    awsSetting_dict = awsSetting.to_dict()
     print(awsSetting_dict)
     
 
@@ -51,8 +51,8 @@ def main():
 
     ## Connect and Subscribe to AWS MQTT broker
     Client = AWSIoTPyMQTT.AWSIoTMQTTClient(client_id)
-    Client.configureEndpoint(awsSetting_dict['Host_Name'], 8883) 
-    Client.configureCredentials(awsSetting_dict['Root_CA'], awsSetting_dict['Private_Key'], awsSetting_dict['Cert_File']) 
+    Client.configureEndpoint(awsSetting_dict['host_name'], 8883) 
+    Client.configureCredentials(awsSetting_dict['root_ca_path'], awsSetting_dict['private_key_path'], awsSetting_dict['cert_file_path']) 
     Client.configureConnectDisconnectTimeout(config_disconnection_timeout) 
     Client.configureMQTTOperationTimeout(config_mqtt_operation_timeout)
     Client.connect()
