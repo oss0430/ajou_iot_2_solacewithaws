@@ -55,13 +55,21 @@ def main():
     Client.configureCredentials(awsSetting_dict['root_ca_path'], awsSetting_dict['private_key_path'], awsSetting_dict['cert_file_path']) 
     Client.configureConnectDisconnectTimeout(config_disconnection_timeout) 
     Client.configureMQTTOperationTimeout(config_mqtt_operation_timeout)
-    Client.connect()
+    
+    def awsConnectCallback(mid, data):
+        print("AWS connected")
+    
+    Client.connectAsync(ackCallback=awsConnectCallback)
 
+    def awsSubscribeCallback(mid, data):
+        print("AWS Subscribed")
+    
+    
     def callbackonAWSMessage(client, userdata, message):
         print('message recieved')
         message_to_picture(message, 'received_picture.png')
-
-    Client.subscribe(aws_topic, 1, callbackonAWSMessage)
+    
+    Client.subscribeAsync(aws_topic, 1, ackCallback = awsSubscribeCallback, messageCallback = callbackonAWSMessage)
 
     
     ## Publish Message
