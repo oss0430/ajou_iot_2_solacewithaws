@@ -21,15 +21,12 @@ def main():
     solace_path = 'solace_config.json'
     aws_config_path = 'aws_config.json'
 
-    config_disconnection_timeout = 10
-    config_mqtt_operation_timeout = 5
-
     client_id = 'device_2'
     solaceSetting = SolaceMQTTConfig()
     solaceSetting.read_config_json(solace_path)
     solaceSetting_dict = solaceSetting.to_dict()
     
-    light_value = 0
+
 
     print(solaceSetting_dict)  
     
@@ -63,10 +60,55 @@ def main():
         msg
     ):  
         print(msg.topic)
+
+        aws_config_path = 'aws_config.json'
+
+        config_disconnection_timeout = 10
+        config_mqtt_operation_timeout = 5
+
+        client_id = 'device_2'
+
+        awsSetting = AWSMQTTConfig()
+        awsSetting.read_config_json(aws_config_path)
+        awsSetting_dict = awsSetting.to_dict()
+
+        ## Connect and Publish to AWS MQTT broker
+        aws_client = AWSIoTPyMQTT.AWSIoTMQTTClient(client_id)
+        aws_client.configureEndpoint(awsSetting_dict['host_name'], 8883) 
+        aws_client.configureCredentials(awsSetting_dict['root_ca_path'], awsSetting_dict['private_key_path'], awsSetting_dict['cert_file_path']) 
+        aws_client.configureConnectDisconnectTimeout(config_disconnection_timeout) 
+        aws_client.configureMQTTOperationTimeout(config_mqtt_operation_timeout)
     
+        def awsConnectCallback(mid, data):
+            print("AWS connected")
+    
+        aws_client.connectAsync(ackCallback=awsConnectCallback)
+
+        def awsPublishcallback(mid):
+            print("AWS Publish")
+    
+
+        aws_topic = "assignment_2"
+
         json_data = json.load(msg.payload)
-        nonlocal light_value 
+
         light_value = json_data['light']
+        
+        threshold = 300
+        if (light_value < threshold):
+        
+            print("threshold crossed!")
+            camera = picamera.PiCamera()
+            camera.rotation = 90
+            camera.resolution = (640,480)
+            camera.start_preview()
+            time.sleep(2) 
+            camera.capture('picamera_liluminance.png')
+        
+        
+            filename = "picamera_liluminace.png"
+            messageJson = picture_to_bytes(filename)
+            aws_client.publishAsync(aws_topic, messageJson, 1, ackCallback=awsPublishcallback)
     
     solace_client.on_connect = on_connect
     solace_client.on_message = on_message
@@ -74,41 +116,6 @@ def main():
 
     solace_client.connect(solaceSetting_dict['url'],solaceSetting_dict['port'])
 
-    
-    ## Connect and Publish to AWS MQTT broker
-    aws_client = AWSIoTPyMQTT.AWSIoTMQTTClient(client_id)
-    aws_client.configureEndpoint(awsSetting_dict['host_name'], 8883) 
-    aws_client.configureCredentials(awsSetting_dict['root_ca_path'], awsSetting_dict['private_key_path'], awsSetting_dict['cert_file_path']) 
-    aws_client.configureConnectDisconnectTimeout(config_disconnection_timeout) 
-    aws_client.configureMQTTOperationTimeout(config_mqtt_operation_timeout)
-    
-    def awsConnectCallback(mid, data):
-        print("AWS connected")
-    
-    aws_client.connectAsync(ackCallback=awsConnectCallback)
-
-    def awsPublishcallback(mid):
-        print("AWS Publish")
-    
-
-    aws_topic = "assignment_2"
-    
-    threshold = 300
-    if (light_value < threshold):
-        
-        print("threshold crossed!")
-        camera = picamera.PiCamera()
-        camera.rotation = 90
-        camera.resolution = (640,480)
-        camera.start_preview()
-        time.sleep(2) 
-        camera.capture('picamera_liluminance.png')
-        
-        
-        filename = "picamera_liluminace.png"
-        messageJson = picture_to_bytes(filename)
-        aws_client.publishAsync(aws_topic, messageJson, 1, ackCallback=awsPublishcallback)
-    
     solace_client.loop_forever()
 
 if __name__ == '__main__':
