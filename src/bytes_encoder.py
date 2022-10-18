@@ -12,7 +12,6 @@ class BytesEncoder(json.JSONEncoder):
     
     
 def picture_to_bytes(
-    self,
     filename
 ):
     data = {}
@@ -26,7 +25,6 @@ def picture_to_bytes(
 
 
 def message_to_picture(
-    self,
     message,
     image_file_path
 ):
@@ -38,11 +36,14 @@ def message_to_picture(
         Finally open the image file 
     """
     
-    json_data = json.load(message.payload)
-    encoded_image = json_data['image']
+    #json_data = json.load(message.payload)
+    
+    #encoded_image = json_data['image']
+    
+    encoded_image = message.payload
     decoded_image = base64.b64decode(encoded_image)
 
-    with open(image_file_path, 'wb') as f:
+    with open(image_file_path, 'w+') as f:
         f.write(decoded_image)
     
     Image.open(image_file_path)

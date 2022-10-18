@@ -67,7 +67,8 @@ def main():
     
     def callbackonAWSMessage(client, userdata, message):
         print('message recieved')
-        message_to_picture(message, 'received_picture.png')
+        print(message.payload)
+        #message_to_picture(message, 'received_picture.png')
     
     aws_client.subscribeAsync(aws_topic, 1, ackCallback = awsSubscribeCallback, messageCallback = callbackonAWSMessage)
 
