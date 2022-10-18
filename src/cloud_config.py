@@ -1,5 +1,5 @@
 import json
-import AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTShadowClient
+import AWSIoTPythonSDK.MQTTLib as AWSIoTPyMQTT
 
 class SolaceMQTTConfig():
 
@@ -65,7 +65,7 @@ class AWSMQTTConfig():
         root_ca_path = None,
         private_key_path = None,
         cert_file_path = None,
-        discnonnection_timeout = None,
+        disconnection_timeout = None,
         mqtt_operation_timeout = None
     ):
 
@@ -107,3 +107,9 @@ class AWSMQTTConfig():
             'disconnection_timeout': self.disconnection_timeout,
             'mqtt_operation_timeout': self.mqtt_operation_timeout
         }
+
+    def create_client(
+        self,
+        client_id
+    ):
+        return AWSIoTPyMQTT.AWSIoTMQTTClient(client_id)
