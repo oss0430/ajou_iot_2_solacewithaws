@@ -5,7 +5,7 @@ import AWSIoTPythonSDK.MQTTLib as AWSIoTPyMQTT
 import json
 from light_sensor import MySPIDevice
 from cloud_config import SolaceMQTTConfig, AWSMQTTConfig
-from bytes_encoder import message_to_picture
+from bytes_encoder import json_to_picture
 
 """
 Solace publisher
@@ -67,8 +67,8 @@ def main():
     
     def callbackonAWSMessage(client, userdata, message):
         print('message recieved')
-        print(message.payload)
-        #message_to_picture(message, 'received_picture.png')
+        #print(message.payload)
+        json_to_picture(message, 'received_picture.png')
     
     aws_client.subscribeAsync(aws_topic, 1, ackCallback = awsSubscribeCallback, messageCallback = callbackonAWSMessage)
 

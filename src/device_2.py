@@ -5,7 +5,7 @@ import AWSIoTPythonSDK.MQTTLib as AWSIoTPyMQTT
 import json
 import picamera
 from cloud_config import SolaceMQTTConfig, AWSMQTTConfig
-from bytes_encoder import picture_to_bytes
+from bytes_encoder import picture_to_json
 from AWS import aws_publish
 
 
@@ -107,7 +107,7 @@ def main():
         
         
             filename = "picamera_liluminace.png"
-            messageJson = picture_to_bytes(filename)
+            messageJson = picture_to_json(filename)
             aws_client.publishAsync(aws_topic, messageJson, 1, ackCallback=awsPublishcallback)
     
     solace_client.on_connect = on_connect
