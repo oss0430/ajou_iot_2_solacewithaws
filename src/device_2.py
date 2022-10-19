@@ -24,7 +24,7 @@ def main():
     ## Configuration
     ## Solace cloud configuration
     solace_topic = 'assignment_2'
-    solace_path = 'solace_config.json'
+    solace_path = './solace_config.json'
     client_id = 'device_2'
 
     aws_config_path = 'aws_config.json'
@@ -64,7 +64,7 @@ def main():
         print(msg.topic)
 
         ## AWS Cloud configuration
-        aws_config_path = 'aws_config.json'
+        aws_config_path = './aws_config.json'
         config_disconnection_timeout = 10
         config_mqtt_operation_timeout = 5
         client_id = 'device_2'
@@ -87,7 +87,7 @@ def main():
 
         aws_client.connectAsync(ackCallback=awsConnectCallback)     
 
-        json_data = json.load(msg.payload)
+        json_data = json.loads(msg.payload)
         light_value = json_data['light']
         
         ## Check requirement
@@ -102,7 +102,8 @@ def main():
             camera.start_preview()
             time.sleep(2) 
             camera.capture('picamera_liluminance.png')
-
+            camera.close()
+            
             ## Encode Picture
             filename = "picamera_liluminace.png"
             messageJson = picture_to_json(filename)
