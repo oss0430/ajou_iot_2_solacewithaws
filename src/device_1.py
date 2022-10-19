@@ -5,29 +5,40 @@ import AWSIoTPythonSDK.MQTTLib as AWSIoTPyMQTT
 import json
 from light_sensor import MySPIDevice
 from cloud_config import SolaceMQTTConfig, AWSMQTTConfig
-from bytes_encoder import message_to_picture
+from bytes_encoder import json_to_picture
 
 """
 Solace publisher
 AWS IoT subscriber
+
+    Connect to Solace MQTT Broker,
+    Subscribe to AWS IoT MQTT Broker,
+    Asyncronously listen to AWS Messages
+
+    Repeatly publish light sensor values with Solace
 """
     
     
 def main():
     ## Configuration
+    ## Light sensor configuration
     config_max_speed_hz = 1000000
-    solace_topic = 'assignment_2'
     channel = 1
-    path = 'solace_config.json'
+    
+    ## Solace cloud configuration
+    solace_topic = 'assignment_2'
+    solace_config_path = 'solace_config.json'
+    client_id = 'device_1'
 
+    ## AWS cloud Configuration
     config_disconnection_timeout = 10
     config_mqtt_operation_timeout = 5
     aws_config_path = 'aws_config.json'
-    client_id = 'device_1'
     aws_topic = 'assignment_2'
 
+    ## Load Cloud Configuration
     solaceSetting = SolaceMQTTConfig()
-    solaceSetting.read_config_json(path)
+    solaceSetting.read_config_json(solace_config_path)
     solaceSetting_dict = solaceSetting.to_dict()
     print(solaceSetting_dict)
 
@@ -43,36 +54,38 @@ def main():
     print("Setting...")
 
     ## Connect device to solace MQTT broker
-    client = mqtt.Client(client_id)
-    client.username_pw_set(username=solaceSetting_dict['username'], password=solaceSetting_dict['password'])
-    client.tls_set(ca_certs=certifi.where())
-    client.connect(solaceSetting_dict['url'],port=solaceSetting_dict['port'])
+    solace_client = mqtt.Client(client_id)
+    solace_client.username_pw_set(username=solaceSetting_dict['username'], password=solaceSetting_dict['password'])
+    solace_client.tls_set(ca_certs=certifi.where())
+    solace_client.connect(solaceSetting_dict['url'],port=solaceSetting_dict['port'])
     
 
-    ## Connect and Subscribe to AWS MQTT broker
-    Client = AWSIoTPyMQTT.AWSIoTMQTTClient(client_id)
-    Client.configureEndpoint(awsSetting_dict['host_name'], 8883) 
-    Client.configureCredentials(awsSetting_dict['root_ca_path'], awsSetting_dict['private_key_path'], awsSetting_dict['cert_file_path']) 
-    Client.configureConnectDisconnectTimeout(config_disconnection_timeout) 
-    Client.configureMQTTOperationTimeout(config_mqtt_operation_timeout)
+    ## Connect to AWS MQTT broker
+    aws_client = AWSIoTPyMQTT.AWSIoTMQTTClient(client_id)
+    aws_client.configureEndpoint(awsSetting_dict['host_name'], 8883) 
+    aws_client.configureCredentials(awsSetting_dict['root_ca_path'], awsSetting_dict['private_key_path'], awsSetting_dict['cert_file_path']) 
+    aws_client.configureConnectDisconnectTimeout(config_disconnection_timeout) 
+    aws_client.configureMQTTOperationTimeout(config_mqtt_operation_timeout)
     
     def awsConnectCallback(mid, data):
         print("AWS connected")
     
-    Client.connectAsync(ackCallback=awsConnectCallback)
+    aws_client.connectAsync(ackCallback=awsConnectCallback)
 
+    ## Subscribe to AWS MQTT broker use callback to listen to any messages 
     def awsSubscribeCallback(mid, data):
         print("AWS Subscribed")
     
     
     def callbackonAWSMessage(client, userdata, message):
         print('message recieved')
-        message_to_picture(message, 'received_picture.png')
+        #print(message.payload)
+        json_to_picture(message, 'received_picture.png')
     
-    Client.subscribeAsync(aws_topic, 1, ackCallback = awsSubscribeCallback, messageCallback = callbackonAWSMessage)
+    aws_client.subscribeAsync(aws_topic, 1, ackCallback = awsSubscribeCallback, messageCallback = callbackonAWSMessage)
 
     
-    ## Publish Message
+    ## Publish Message with solace client
     print("Start Publishing")
     while True:
         ## Get integer value of light
@@ -82,8 +95,8 @@ def main():
         print(payload)
 
         ## Publish with Payload
-        client.publish(solace_topic, payload=payload)
-
+        solace_client.publish(solace_topic, payload=payload)
+        
         time.sleep(1)
 
 
