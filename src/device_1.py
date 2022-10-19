@@ -10,22 +10,33 @@ from bytes_encoder import json_to_picture
 """
 Solace publisher
 AWS IoT subscriber
+
+    Connect to Solace MQTT Broker,
+    Subscribe to AWS IoT MQTT Broker,
+    Asyncronously listen to AWS Messages
+
+    Repeatly publish light sensor values with Solace
 """
     
     
 def main():
     ## Configuration
+    ## Light sensor configuration
     config_max_speed_hz = 1000000
-    solace_topic = 'assignment_2'
     channel = 1
+    
+    ## Solace cloud configuration
+    solace_topic = 'assignment_2'
     solace_config_path = 'solace_config.json'
+    client_id = 'device_1'
 
+    ## AWS cloud Configuration
     config_disconnection_timeout = 10
     config_mqtt_operation_timeout = 5
     aws_config_path = 'aws_config.json'
-    client_id = 'device_1'
     aws_topic = 'assignment_2'
 
+    ## Load Cloud Configuration
     solaceSetting = SolaceMQTTConfig()
     solaceSetting.read_config_json(solace_config_path)
     solaceSetting_dict = solaceSetting.to_dict()
@@ -49,7 +60,7 @@ def main():
     solace_client.connect(solaceSetting_dict['url'],port=solaceSetting_dict['port'])
     
 
-    ## Connect and Subscribe to AWS MQTT broker
+    ## Connect to AWS MQTT broker
     aws_client = AWSIoTPyMQTT.AWSIoTMQTTClient(client_id)
     aws_client.configureEndpoint(awsSetting_dict['host_name'], 8883) 
     aws_client.configureCredentials(awsSetting_dict['root_ca_path'], awsSetting_dict['private_key_path'], awsSetting_dict['cert_file_path']) 
@@ -61,6 +72,7 @@ def main():
     
     aws_client.connectAsync(ackCallback=awsConnectCallback)
 
+    ## Subscribe to AWS MQTT broker use callback to listen to any messages 
     def awsSubscribeCallback(mid, data):
         print("AWS Subscribed")
     
@@ -84,7 +96,7 @@ def main():
 
         ## Publish with Payload
         solace_client.publish(solace_topic, payload=payload)
-
+        
         time.sleep(1)
 
 
